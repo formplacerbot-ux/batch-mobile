@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090c12">
+<title>ULTRABATCH</title>
+<style>
+:root{color-scheme:dark;--bg:#090c12;--panel:#111722;--border:#263244;--green:#68ff9a;--text:#dce6f2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px Consolas,monospace}
+header{padding:17px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{font-size:22px;font-weight:bold}.brand span{color:var(--green)}
+.small{color:#8393a9;font-size:12px}
+main{max-width:1300px;margin:auto;padding:16px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+button{font:inherit;color:white;background:#1b2635;border:1px solid #35465c;border-radius:7px;padding:10px 13px;cursor:pointer}
+button:hover{border-color:var(--green)}.run{background:#176d3b}
+.workspace{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-width:0}
+.panelhead{padding:12px;background:#151e2b;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+#editor{display:block;width:100%;height:480px;resize:vertical;padding:16px;background:#0b1018;color:#c7f8d4;border:0;outline:0;font:14px/1.65 Consolas,monospace;tab-size:4;white-space:pre}
+#terminal{height:480px;overflow:auto;padding:15px;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.6 Consolas,monospace;color:var(--green)}
+.muted{color:#8293aa}.error{color:#ff8181}
+.status{margin-top:12px;color:#8293aa;font-size:12px}
+#help{display:none;margin-top:12px;padding:15px;line-height:1.8;background:var(--panel);border:1px solid var(--border);border-radius:10px}
+#help code{color:var(--green)}
+#inputbar{display:none;gap:8px;padding:12px;border-top:1px solid var(--border)}
+#userinput{min-width:0;flex:1;background:#080d14;border:1px solid #35465c;border-radius:6px;color:white;padding:10px;font:inherit}
+@media(max-width:760px){.workspace{grid-template-columns:1fr}#editor{height:340px}#terminal{height:300px}main{padding:9px}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="brand"><span>ULTRA</span>BATCH</div><div class="small">Batch-style coding environment</div></div>
+  <div class="small">iOS compatible</div>
+</header>
+<main>
+<div class="toolbar">
+<button class="run" id="run">▶ Run</button>
+<button id="stop">■ Stop</button>
+<button id="clear">Clear terminal</button>
+<button id="save">Save script</button>
+<button id="load">Open script</button>
+<button id="helpbtn">Commands</button>
+<input id="filepick" type="file" accept=".bat,.txt" hidden>
+</div>
+<div class="workspace">
+<section class="panel">
+<div class="panelhead"><span>CODE EDITOR</span><span class="small">script.bat</span></div>
+<textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off">@echo off
+title UltraBatch Demo
+color 0a
+echo Welcome to UltraBatch!
+echo.
+ver
+echo.
+set name=Coder
+echo Hello %name%!
+echo.
+echo Your current folder is %cd%
+echo.
+mkdir projects
+cd projects
+echo You are inside projects
+dir
+echo.
+echo Script finished!
+pause
+exit /b 0</textarea>
+</section>
+<section class="panel">
+<div class="panelhead"><span>TERMINAL</span><span id="termTitle" class="small">Ready</span></div>
+<div id="terminal"><span class="muted">ULTRABATCH terminal ready
+Press Run to execute your script.</span></div>
+<div id="inputbar">
+<input id="userinput" autocomplete="off" placeholder="Enter a value">
+<button id="inputsubmit">Enter</button>
+</div>
+</section>
+</div>
+<div class="status" id="status">Ready · Commands run in a virtual environment</div>
+<div id="help">
+<b>OUTPUT</b><p><code>echo</code> <code>echo.</code> <code>rem</code> <code>::</code> <code>cls</code> <code>color</code> <code>title</code> <code>ver</code> <code>vol</code> <code>help</code> <code>pause</code> <code>timeout</code></p>
+<b>VARIABLES</b><p><code>set</code> <code>set /p</code> <code>set /a</code> <code>%name%</code> <code>%random%</code> <code>%errorlevel%</code> <code>%cd%</code> <code>%date%</code> <code>%time%</code> <code>%username%</code> <code>%computername%</code> <code>%os%</code></p>
+<b>FLOW CONTROL</b><p><code>if</code> <code>else</code> <code>exist</code> <code>errorlevel</code> <code>goto</code> <code>call :label</code> <code>exit</code> <code>exit /b</code> <code>for %%A in (...) do</code> <code>shift</code> <code>choice</code></p>
+<b>VIRTUAL FILES</b><p><code>dir</code> <code>cd</code> <code>chdir</code> <code>mkdir</code> <code>md</code> <code>rmdir</code> <code>rd</code> <code>type</code> <code>copy</code> <code>move</code> <code>ren</code> <code>rename</code> <code>del</code> <code>erase</code> <code>pushd</code> <code>popd</code></p>
+<b>SIMULATED SYSTEM / UTILITIES</b><p><code>path</code> <code>date</code> <code>time</code> <code>hostname</code> <code>whoami</code> <code>systeminfo</code> <code>ipconfig</code> <code>tasklist</code> <code>where</code> <code>find</code> <code>sort</code> <code>start</code></p>
+<b>OPERATORS</b><p><code>&gt;</code> overwrite output file, <code>&gt;&gt;</code> append output, <code>&amp;</code> run commands in sequence, <code>&amp;&amp;</code> run next if successful, <code>||</code> run next if previous failed.</p>
+<p class="small">This is a Batch-style simulator, not Windows CMD. System commands are simulated, and file commands only affect the app's virtual filesystem. Some advanced Batch syntax is not implemented.</p>
+</div>
+</main>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const editor=$("editor"),terminal=$("terminal");
+let stopped=false,running=false,waiting=null,vars={},files={},dirs=new Set(),cwd="C:\\Users\\Coder",stack=[],labels={},lines=[],pc=0,errorlevel=0,echoOn=true,steps=0,callStack=[],forVars={},iosVersion="iOS (web simulator)",virtualPath="C:\\Windows;C:\\Windows\\System32";
+
+function initFS(){dirs=new Set(["C:\\","C:\\Users","C:\\Users\\Coder","C:\\Windows","C:\\Windows\\System32"]);files={};}
+initFS();
+function print(s="",cls=""){if(s===null)s="";const e=document.createElement("div");if(cls)e.className=cls;e.textContent=String(s);terminal.appendChild(e);terminal.scrollTop=terminal.scrollHeight;}
+function clearTerm(){terminal.replaceChildren();}
+function setStatus(s){$("status").textContent=s;}
+function lowerKey(o,key){return Object.keys(o).find(k=>k.toLowerCase()===key.toLowerCase());}
+function expand(s){
+ s=String(s).replace(/%%([A-Za-z])/g,(_,v)=>"\u0002"+v.toUpperCase());
+ s=s.replace(/%([^%]+)%/g,(whole,n)=>{
+  const k=n.toLowerCase();
+  if(k==="random")return String(Math.floor(Math.random()*32768));
+  if(k==="errorlevel")return String(errorlevel);
+  if(k==="cd")return cwd;
+  if(k==="date")return new Date().toLocaleDateString();
+  if(k==="time")return new Date().toLocaleTimeString();
+  if(k==="os")return "iOS";
+  if(k==="iosversion")return iosVersion;
+  if(k==="username")return "Coder";
+  if(k==="computername")return "ULTRABATCH";
+  if(k==="path")return virtualPath;
+  if(k==="prompt")return promptValue;
+  const key=lowerKey(vars,k);return key===undefined?"":vars[key];
+ });
+ return s.replace(/\u0002([A-Z])/g,"%%$1");
+}
+let promptValue="$P$G";
+function norm(path){
+ path=String(path||"").replace(/^"|"$/g,"").replace(/\//g,"\\");
+ if(!/^[A-Za-z]:/.test(path))path=cwd.replace(/\\$/,"")+"\\"+path;
+ let parts=[];
+ for(const p of path.split("\\")){
+  if(!p||/^[A-Za-z]:$/.test(p)){if(p)parts.push(p);}
+  else if(p===".."){if(parts.length>1)parts.pop();}
+  else if(p!==".")parts.push(p);
+ }
+ return parts.join("\\");
+}
+function parent(p){let i=p.lastIndexOf("\\");return i<=2?p.slice(0,3):p.slice(0,i);}
+function base(p){return p.split("\\").pop();}
+function fileKey(p){return lowerKey(files,norm(p));}
+function getFile(p){const k=fileKey(p);return k===undefined?undefined:files[k];}
+function putFile(p,v){const path=norm(p),k=fileKey(path);files[k===undefined?path:k]=String(v);}
+function isDir(p){const path=norm(p);return [...dirs].some(d=>d.toLowerCase()===path.toLowerCase());}
+function exists(p){return isDir(p)||fileKey(p)!==undefined;}
+function args(s){
+ let a=[],v="",q=false;
+ for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'){q=!q;continue;}if(/\s/.test(c)&&!q){if(v){a.push(v);v="";}}else v+=c;}
+ if(v)a.push(v);return a;
+}
+function splitEq(s){let i=s.indexOf("=");return i<0?null:[s.slice(0,i).trim(),s.slice(i+1)];}
+function showHelp(){print("Commands: echo, rem, cls, color, title, ver, vol, help, set, set /p, set /a, if, goto, call, exit, for, choice, pause, timeout, cd, dir, mkdir, rmdir, type, copy, move, ren, del, pushd, popd, date, time, path, hostname, whoami, systeminfo, ipconfig, tasklist, where, find, sort.");}
+function output(s){if(outputRedirect){redirectLines.push(String(s));}else print(s);}
+let outputRedirect=null,redirectLines=[],redirectAppend=false;
+function tokenizeCommands(s){
+ let out=[],cur="",quote=false;
+ for(let i=0;i<s.length;i++){
+  let c=s[i];
+  if(c==='"'){quote=!quote;cur+=c;continue;}
+  if(!quote&&(c==="&"||c==="|"||c===">" )){
+   if(cur.trim())out.push({text:cur.trim(),op:null});
+   let op=c;
+   if(s[i+1]===c&&(c==="&"||c===">")){op+=c;i++;}
+   if(c==="|"&&s[i+1]==="|") {op="||";i++;}
+   if(out.length)out[out.length-1].op=op;
+   cur="";
+  }else cur+=c;
+ }
+ if(cur.trim())out.push({text:cur.trim(),op:null});
+ return out;
+}
+function runIf(s){
+ let m=s.match(/^if\s+(not\s+)?(.+)$/i);if(!m)return false;
+ let negate=!!m[1],body=m[2],ok=false,tail="";
+ let t=body.match(/^exist\s+"?([^"]+?)"?\s+(.+)$/i);
+ if(t){ok=exists(t[1]);tail=t[2];}
+ else{
+  t=body.match(/^("?[^"]*"?|\S+)\s+(==|equ|neq|lss|leq|gtr|geq)\s+("?[^"]*"?|\S+)\s+(.+)$/i);
+  if(t){
+   let a=t[1].replace(/^"|"$/g,""),b=t[3].replace(/^"|"$/g,""),op=t[2].toLowerCase(),na=Number(a),nb=Number(b);
+   if(op==="==")ok=a.toLowerCase()===b.toLowerCase();
+   if(op==="equ")ok=na===nb;if(op==="neq")ok=na!==nb;
+   if(op==="lss")ok=na<nb;if(op==="leq")ok=na<=nb;
+   if(op==="gtr")ok=na>nb;if(op==="geq")ok=na>=nb;
+   tail=t[4];
+  }else{
+   t=body.match(/^errorlevel\s+(\d+)\s+(.+)$/i);
+   if(t){ok=errorlevel>=Number(t[1]);tail=t[2];}
+   else return false;
+  }
+ }
+ if(negate)ok=!ok;
+ let em=tail.match(/^(.*?)\s+else\s+(.+)$/i);
+ if(ok)executeCommand((em?em[1]:tail).trim());
+ else if(em)executeCommand(em[2].trim());
+ return true;
+}
+function executeCommand(raw){
+ if(stopped)return;
+ let s=raw.trim();if(!s)return;
+ if(s.startsWith("@"))s=s.slice(1).trim();
+ if(!s||/^rem(?:\s|$)/i.test(s)||s.startsWith("::"))return;
+ // Handle output redirection
+ let red=s.match(/^(.*?)\s*(>>|>)\s*"?([^"]+)"?\s*$/);
+ if(red){
+  const old=outputRedirect,oldLines=redirectLines,oldAppend=redirectAppend;
+  outputRedirect=norm(red[3]);redirectLines=[];redirectAppend=red[2]===">>";
+  executeCommand(red[1]);
+  const prior=redirectAppend?(getFile(outputRedirect)||""):"";
+  putFile(outputRedirect,prior+redirectLines.join("\n")+(redirectLines.length?"\n":""));
+  outputRedirect=old;redirectLines=oldLines;redirectAppend=oldAppend;return;
+ }
+ // echo is checked before general variable expansion so echo %%A works in loops
+ if(/^echo\./i.test(s)){output("");return;}
+ s=expand(s);
+ if(/^echo(?:\s|$)/i.test(s)){
+  const v=s.replace(/^echo/i,"");
+  if(!v.trim()){output("ECHO is "+(echoOn?"on":"off")+".");return;}
+  if(/^on$/i.test(v.trim())){echoOn=true;return;}
+  if(/^off$/i.test(v.trim())){echoOn=false;return;}
+  output(v.trimStart());return;
+ }
+ if(/^cls$/i.test(s)){clearTerm();return;}
+ if(/^help$/i.test(s)){showHelp();return;}
+ if(/^ver$/i.test(s)){output("ULTRABATCH [Version 2.0]");output("Operating environment: "+iosVersion);return;}
+ if(/^vol(?:\s|$)/i.test(s)){output("Virtual drive C is ULTRABATCH");output("No physical disk is accessed.");return;}
+ if(/^title(?:\s|$)/i.test(s)){document.title=s.slice(5).trim()||"ULTRABATCH";$("termTitle").textContent=document.title;return;}
+ if(/^color(?:\s|$)/i.test(s)){
+  let c=(s.split(/\s+/)[1]||"07").toLowerCase();
+  const palette={"0a":["#090c12","#68ff9a"],"07":["#090c12","#dce6f2"],"0c":["#090c12","#ff6b6b"],"0b":["#090c12","#62d9ff"],"0e":["#090c12","#ffe27a"],"1f":["#10264a","#ffffff"],"f0":["#ffffff","#101010"]};
+  let p=palette[c]||palette["07"];document.body.style.background=p[0];document.body.style.color=p[1];terminal.style.color=p[1];return;
+ }
+ if(/^set(?:\s|$)/i.test(s)){
+  let v=s.slice(3).trim();
+  if(/^\/a\s+/i.test(v)){
+   let x=expand(v.replace(/^\/a\s+/i,"")),m=x.match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/);
+   if(!m){output("Usage: set /a total=2+3");return;}
+   let expr=m[2];
+   if(!/^[\d\s()+*/%<>&|^~-]+$/.test(expr)){output("Invalid arithmetic expression");errorlevel=1;return;}
+   try{let n=Function('"use strict";return ('+expr+')')();vars[m[1]]=String(Math.trunc(n));output(vars[m[1]]);errorlevel=0;}catch{output("Arithmetic error");errorlevel=1;}return;
+  }
+  if(/^\/p\s+/i.test(v)){
+   let eq=splitEq(v.replace(/^\/p\s+/i,""));if(!eq){output("Usage: set /p name=Enter name:");return;}
+   requestInput(expand(eq[1]),answer=>{vars[eq[0].toLowerCase()]=answer;resumeRun();});waiting="input";return;
+  }
+  if(/^\/\?/i.test(v)){output("SET variable=value | SET /P variable=prompt | SET /A variable=expression");return;}
+  let eq=splitEq(v);
+  if(!eq){Object.keys(vars).sort().forEach(k=>output(k+"="+vars[k]));return;}
+  vars[eq[0].toLowerCase()]=eq[1];return;
+ }
+ if(/^if(?:\s|$)/i.test(s)){if(!runIf(s)){output("Unsupported IF syntax: "+s);errorlevel=1;}return;}
+ if(/^goto\s+/i.test(s)){
+  let label=s.replace(/^goto/i,"").trim().replace(/^:/,"").toLowerCase();
+  if(label==="eof"){if(callStack.length)pc=callStack.pop();else stopped=true;return;}
+  if(labels[label]!==undefined){pc=labels[label]+1;return;}
+  output("Label not found: "+label);errorlevel=1;stopped=true;return;
+ }
+ if(/^call\s+:/i.test(s)){
+  let label=s.replace(/^call\s+:/i,"").trim().split(/\s/)[0].toLowerCase();
+  if(labels[label]===undefined){output("Label not found: "+label);errorlevel=1;return;}
+  callStack.push(pc);pc=labels[label]+1;return;
+ }
+ if(/^exit(?:\s|$)/i.test(s)){
+  if(/\/b/i.test(s)&&callStack.length)pc=callStack.pop();else stopped=true;
+  return;
+ }
+ if(/^for\s+/i.test(s)){
+  let m=s.match(/^for\s+%%?([A-Za-z])\s+in\s*\((.*?)\)\s+do\s+(.+)$/i);
+  if(!m){output("Supported: for %%A in (one two three) do echo %%A");errorlevel=1;return;}
+  let variable=m[1].toUpperCase(),items=args(m[2]),body=m[3];
+  for(const item of items){if(stopped)break;let cmd=body.replace(new RegExp("%%"+variable,"gi"),item).replace(new RegExp("%"+variable,"gi"),item);executeCommand(cmd);}return;
+ }
+ if(/^choice(?:\s|$)/i.test(s)){
+  requestInput("Choose an option (Y/N)",answer=>{errorlevel=/^n$/i.test(answer)?2:1;resumeRun();});waiting="input";return;
+ }
+ if(/^pause(?:\s|$)/i.test(s)){requestInput("Press Enter to continue",()=>resumeRun(),true);waiting="input";return;}
+ if(/^timeout(?:\s|$)/i.test(s)){output("TIMEOUT simulated. Press Run again to continue.");return;}
+ if(/^cd(?:\s|$)/i.test(s)||/^chdir(?:\s|$)/i.test(s)){
+  let a=s.replace(/^(cd|chdir)/i,"").trim().replace(/^\/d\s+/i,"");
+  if(!a){output(cwd);return;}let p=norm(a);
+  if(isDir(p)){cwd=p;errorlevel=0;}else{output("Path not found: "+p);errorlevel=1;}return;
+ }
+ if(/^dir(?:\s|$)/i.test(s)){
+  let p=norm(s.replace(/^dir/i,"").trim()||cwd);
+  if(!isDir(p)){output("Directory not found: "+p);errorlevel=1;return;}
+  output(" Directory of "+p);
+  let children=[];
+  for(const d of dirs)if(parent(d).toLowerCase()===p.toLowerCase()&&d.toLowerCase()!==p.toLowerCase())children.push("<DIR> "+base(d));
+  for(const f of Object.keys(files))if(parent(f).toLowerCase()===p.toLowerCase())children.push("      "+base(f));
+  children.sort().forEach(output);output(children.length+" item(s)");return;
+ }
+ if(/^(mkdir|md)(?:\s|$)/i.test(s)){
+  let a=s.replace(/^(mkdir|md)/i,"").trim();if(!a){output("Usage: mkdir folder");return;}
+  let p=norm(a);if(exists(p)){output("Already exists: "+p);return;}
+  if(!isDir(parent(p))){output("Parent directory does not exist: "+parent(p));errorlevel=1;return;}
+  dirs.add(p);errorlevel=0;return;
+ }
+ if(/^(rmdir|rd)(?:\s|$)/i.test(s)){
+  let a=s.replace(/^(rmdir|rd)/i,"").replace(/^\/[sq]\s*/ig,"").trim(),p=norm(a);
+  if(!isDir(p)||p==="C:\\"){output("Cannot remove directory: "+p);errorlevel=1;return;}
+  for(const f of Object.keys(files))if(parent(f).toLowerCase()===p.toLowerCase()||f.toLowerCase().startsWith(p.toLowerCase()+"\\"))delete files[f];
+  for(const d of [...dirs])if(d.toLowerCase()===p.toLowerCase()||d.toLowerCase().startsWith(p.toLowerCase()+"\\"))dirs.delete(d);
+  return;
+ }
+ if(/^type(?:\s|$)/i.test(s)){
+  let p=s.replace(/^type/i,"").trim(),v=getFile(p);
+  if(v===undefined){output("File not found: "+p);errorlevel=1;}else v.split("\n").forEach(output);return;
+ }
+ if(/^(del|erase)(?:\s|$)/i.test(s)){
+  let a=s.replace(/^(del|erase)/i,"").replace(/^\/[fq]\s*/ig,"").trim(),k=fileKey(a);
+  if(k===undefined){output("File not found: "+a);errorlevel=1;}else{delete files[k];errorlevel=0;}return;
+ }
+ if(/^(copy|move|ren|rename)(?:\s|$)/i.test(s)){
+  let m=s.match(/^(copy|move|ren|rename)\s+(.+)$/i);if(!m)return;
+  let op=m[1].toLowerCase(),a=args(m[2]);if(a.length<2){output("Two paths required.");return;}
+  let src=norm(a[0]),dst=norm(a[1]),v=getFile(src),k=fileKey(src);
+  if(v===undefined){output("File not found: "+src);errorlevel=1;return;}
+  let target=isDir(dst)?dst+"\\"+base(src):dst;
+  if(op==="ren"||op==="rename")target=parent(src)+"\\"+a[1];
+  putFile(target,v);if(op!=="copy")delete files[k];output(op+" completed: "+target);errorlevel=0;return;
+ }
+ if(/^pushd(?:\s|$)/i.test(s)){stack.push(cwd);let p=norm(s.replace(/^pushd/i,"").trim());if(isDir(p))cwd=p;else{stack.pop();output("Directory not found: "+p);errorlevel=1;}return;}
+ if(/^popd$/i.test(s)){if(stack.length)cwd=stack.pop();else output("Directory stack empty");return;}
+ if(/^path(?:\s|$)/i.test(s)){let v=s.slice(4).trim();if(v.startsWith("="))virtualPath=v.slice(1);output("PATH="+virtualPath);return;}
+ if(/^prompt(?:\s|$)/i.test(s)){promptValue=s.slice(6).trim();return;}
+ if(/^date(?:\s|$)/i.test(s)){output("Current iOS date: "+new Date().toLocaleDateString());return;}
+ if(/^time(?:\s|$)/i.test(s)){output("Current iOS time: "+new Date().toLocaleTimeString());return;}
+ if(/^hostname$/i.test(s)){output("ULTRABATCH-IPHONE");return;}
+ if(/^whoami$/i.test(s)){output("ios\\coder");return;}
+ if(/^systeminfo$/i.test(s)){output("Host: iOS-compatible web simulator");output("Device: "+(/iPhone|iPad/.test(navigator.userAgent)?"iPhone or iPad":"Desktop browser"));output("Windows system information is not available.");return;}
+ if(/^ipconfig(?:\s|$)/i.test(s)){output("Network configuration (simulated)");output("Wi-Fi: managed by iOS");output("IP addresses are not exposed by this simulator.");return;}
+ if(/^tasklist$/i.test(s)){output("Image Name             Status");output("ULTRABATCH             Running");output("Browser                Running");return;}
+ if(/^where\s+/i.test(s)){let name=s.replace(/^where/i,"").trim();output(name+": simulated command lookup only");return;}
+ if(/^find\s+/i.test(s)){let a=args(s.replace(/^find/i,"").trim());if(a.length<2){output('Usage: find "text" file');return;}let needle=a[0],v=getFile(a[1]);if(v===undefined){output("File not found: "+a[1]);errorlevel=1;}else v.split("\n").filter(x=>x.toLowerCase().includes(needle.toLowerCase())).forEach(output);return;}
+ if(/^sort(?:\s|$)/i.test(s)){let p=s.replace(/^sort/i,"").trim(),v=getFile(p);if(v===undefined){output("Usage: sort file");errorlevel=1;}else v.split(/\r?\n/).sort((a,b)=>a.localeCompare(b)).forEach(output);return;}
+ if(/^start(?:\s|$)/i.test(s)){output("START simulated. iOS cannot launch Windows executables.");return;}
+ if(/^(shutdown|taskkill|format|diskpart|reg|net|powershell|wmic|attrib|icacls|takeown|sfc|chkdsk|bcdedit|sc|schtasks|gpupdate|wevtutil|certutil|defrag|driverquery|netstat|tracert|nslookup|arp|route|cmd|cmd\.exe)(?:\s|$)/i.test(s)){
+  output("Windows-only command simulated as unavailable on iOS: "+s);errorlevel=1;return;
+ }
+ output("Unknown command: "+s);errorlevel=1;
+}
+function executeLine(raw){
+ let s=raw.trim();if(!s)return;
+ let parts=tokenizeCommands(s);
+ let previousSuccess=true;
+ for(const part of parts){
+  if(stopped)return;
+  if(part.op==="&&"&&!previousSuccess)continue;
+  if(part.op==="||"&&previousSuccess)continue;
+  executeCommand(part.text);
+  previousSuccess=errorlevel===0;
+  if(part.op===null)break;
+ }
+}
+function requestInput(label,callback,isPause=false){
+ const bar=$("inputbar"),inp=$("userinput");
+ bar.style.display="flex";inp.value="";inp.placeholder=label;inp.focus();
+ const finish=()=>{const v=inp.value;bar.style.display="none";inp.onkeydown=null; $("inputsubmit").onclick=null;print(isPause?"Continuing...":label+": "+v,"muted");callback(v);};
+ $("inputsubmit").onclick=finish;
+ inp.onkeydown=e=>{if(e.key==="Enter")finish();};
+}
+function indexLabels(){
+ labels={};
+ lines.forEach((line,i)=>{let m=line.trim().match(/^:([^\s]+)/);if(m)labels[m[1].toLowerCase()]=i;});
+}
+function resumeRun(){if(waiting==="input"){waiting=null;runLoop();}}
+async function runLoop(){
+ let slice=0;
+ while(pc<lines.length&&!stopped&&!waiting){
+  if(++steps>30000){print("Stopped: safety step limit reached.","error");stopped=true;break;}
+  let raw=lines[pc++],trim=raw.trim();
+  if(!trim||/^::/.test(trim)||/^:[^\s]+/.test(trim))continue;
+  if(echoOn&&!/^@?echo\s+off$/i.test(trim)&&!/^rem(?:\s|$)/i.test(trim))print(">"+expand(trim),"muted");
+  executeLine(trim);
+  if(++slice%60===0)await new Promise(r=>setTimeout(r,0));
+ }
+ if(waiting)return;
+ running=false;
+ $("termTitle").textContent=stopped?"Stopped":"Finished";
+ setStatus((stopped?"Stopped":"Finished")+" · "+steps+" steps · Error level "+errorlevel);
+}
+function runScript(){
+ if(running)return;
+ stopped=false;running=true;vars={};stack=[];callStack=[];forVars={};pc=0;steps=0;errorlevel=0;echoOn=true;
+ lines=editor.value.replace(/\r/g,"").split("\n");indexLabels();clearTerm();
+ $("termTitle").textContent="Running";setStatus("Running script...");
+ runLoop();
+}
+$("run").onclick=runScript;
+$("stop").onclick=()=>{stopped=true;waiting=null;$("inputbar").style.display="none";running=false;$("termTitle").textContent="Stopped";setStatus("Execution stopped.");};
+$("clear").onclick=clearTerm;
+$("helpbtn").onclick=()=>{$("help").style.display=$("help").style.display==="block"?"none":"block";};
+$("save").onclick=()=>{
+ const blob=new Blob([editor.value],{type:"text/plain"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="script.bat";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+$("load").onclick=()=>$("filepick").click();
+$("filepick").onchange=async e=>{const f=e.target.files[0];if(f)editor.value=await f.text();e.target.value="";};
+editor.addEventListener("keydown",e=>{
+ if(e.key==="Tab"){e.preventDefault();editor.setRangeText("    ",editor.selectionStart,editor.selectionEnd,"end");}
+ if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();runScript();}
+});
+</script>
+</body>
+</html>
